@@ -32,7 +32,7 @@ const Signup = () => {
         console.log(user)
 
         try {
-            const response = await axios.post(`https://mern-blog-ha28.onrender.com/api/v1/user/register`, user, {
+            const response = await axios.post(`${process.env.SERVER_PORT}/api/v1/user/register`, user, {
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -46,7 +46,7 @@ const Signup = () => {
             }
         } catch (error) {
             console.log(error);
-            toast.error(error.response.data.message)
+            toast.error(error)
 
 
         }
