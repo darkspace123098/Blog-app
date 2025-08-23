@@ -39,7 +39,7 @@ const ResponsiveMenu = ({ openNav, setOpenNav, logoutHandler }) => {
             </div>
             <div className='pb-20'>
                 <h1>
-                    Made with ❤️ by Rohit
+                    Developed By Firecode
                 </h1>
             </div>
         </div>

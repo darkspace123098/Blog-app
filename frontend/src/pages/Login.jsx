@@ -32,7 +32,7 @@ const Login = () => {
     console.log(input);
 
     try {
-      const response = await axios.post(`${process.env.SERVER_PORT}/api/v1/user/login`, input, {
+      const response = await axios.post(`http://localhost:8000/api/v1/user/login`, input, {
         headers: {
           "Content-Type": "application/json"
         },
