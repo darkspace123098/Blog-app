@@ -12,12 +12,12 @@ const Footer = () => {
             <Link to='/' className='flex gap-3 items-center'>
               {/* <img src={Logo} alt="" className='w-32'/> */}
               <img src={Logo} alt="" className='invert w-12 h-12'/>
-              <h1 className=' text-3xl font-bold'>Logo</h1>
+              <h1 className=' text-3xl font-bold'>Tech-Blog</h1>
             </Link>
             <p className='mt-2'>Sharing insights, tutorials, and ideas on web development and tech.</p>
-            <p className='mt-2 text-sm'>123 Blog St, Style City, NY 10001</p>
-            <p className='text-sm'>Email: support@blog.com</p>
-            <p className='text-sm'>Phone: (123) 456-7890</p>
+            <p className='mt-2 text-sm'>Fish Dev, Mangalore City, KA 574-142</p>
+            <p className='text-sm'>Email: darkspace123098@gmail.com</p>
+            <p className='text-sm'>Phone: (91) 8861510777</p>
         </div>
         {/* customer service link */}
         <div className='mb-6 md:mb-0'>
@@ -34,8 +34,8 @@ const Footer = () => {
         <div className='mb-6 md:mb-0'>
             <h3 className='text-xl font-semibold'>Follow Us</h3>
             <div className='flex space-x-4 mt-2'>
-                <FaFacebook/>
-                <FaInstagram/>
+                <a href="https://instagram.com/irshadali_313" target="_blank" rel="noopener noreferrer"><FaFacebook/></a>
+                <a href="https://instagram.com/irshadali_313" target="_blank" rel="noopener noreferrer"><FaInstagram/></a>
                 <FaTwitterSquare/>
                 <FaPinterest/>
             </div>
@@ -56,7 +56,7 @@ const Footer = () => {
       </div>
       {/* bottom section */}
       <div className='mt-8 border-t border-gray-700 pt-6 text-center text-sm'>
-        <p>&copy; {new Date().getFullYear()} <span className='text-red-500'>Blog</span>. All rights reserved</p>
+        <p>&copy; {new Date().getFullYear()} <span className='text-red-500'>Tech-Blog</span>. All rights reserved</p>
       </div>
     </footer>
   )
