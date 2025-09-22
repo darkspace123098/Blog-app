@@ -34,6 +34,20 @@ const userSchema = new mongoose.Schema({
     github: { type: String, default: "" },
     facebook: { type: String, default: "" },
 
+    // Password reset flow
+    resetPasswordCode: { type: String, default: null },
+    resetPasswordExpiresAt: { type: Date, default: null },
+
+    // Admin role
+    role: {
+        type: String,
+        enum: ['user', 'admin', 'superadmin'],
+        default: 'user'
+    },
+    isActive: {
+        type: Boolean,
+        default: true
+    }
 
 }, { timestamps: true })
 

@@ -15,6 +15,7 @@ const CreateBlog = () => {
     const [loading, setLoading] = useState(false)
     const [title, setTitle] = useState("")
     const [category, setCategory] = useState("")
+    const [tags, setTags] = useState("")
     const {blog} = useSelector(store=>store.blog)
     const dispatch = useDispatch()
     const navigate = useNavigate()
@@ -25,7 +26,7 @@ const CreateBlog = () => {
         
         try {
             setLoading(true)
-            const res = await axios.post(`http://localhost:8000/api/v1/blog/`, { title, category }, {
+            const res = await axios.post(`http://localhost:8000/api/v1/blog/`, { title, category, tags }, {
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -72,6 +73,17 @@ const CreateBlog = () => {
                             </SelectGroup>
                         </SelectContent>
                     </Select>
+                </div>
+                <div className='mt-4 mb-5'>
+                    <Label>Tags</Label>
+                    <Input 
+                        type="text" 
+                        placeholder="Enter tags separated by commas (e.g., react, javascript, tutorial)" 
+                        value={tags} 
+                        onChange={(e) => setTags(e.target.value)} 
+                        className="bg-white dark:bg-gray-700" 
+                    />
+                    <p className="text-sm text-gray-500 mt-1">Separate multiple tags with commas</p>
                 </div>
                 <div className='flex gap-2'>
                     {/* <Button  variant="outline">Cancel</Button> */}

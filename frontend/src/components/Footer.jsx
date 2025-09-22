@@ -1,9 +1,51 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Logo from '../assets/logo.png'
 import { FaFacebook, FaInstagram, FaPinterest, FaTwitterSquare } from 'react-icons/fa'
+import axios from 'axios'
+import { toast } from 'sonner'
 
 const Footer = () => {
+  const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const handleNewsletterSubmit = async (e) => {
+    e.preventDefault()
+    
+    if (!email) {
+      toast.error('Please enter your email address')
+      return
+    }
+
+    // Basic email validation
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+    if (!emailRegex.test(email)) {
+      toast.error('Please enter a valid email address')
+      return
+    }
+
+    try {
+      setLoading(true)
+      const response = await axios.post('http://localhost:8000/api/v1/newsletter/subscribe', 
+        { email }, 
+        { 
+          headers: { 'Content-Type': 'application/json' },
+          withCredentials: true 
+        }
+      )
+
+      if (response.data.success) {
+        toast.success(response.data.message)
+        setEmail('') // Clear the form
+      }
+    } catch (error) {
+      console.error('Newsletter subscription error:', error)
+      toast.error(error.response?.data?.message || 'Failed to subscribe. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <footer className='bg-gray-800 text-gray-200 py-10'>
       <div className='max-w-7xl mx-auto px-4 md:flex md:justify-between'>
@@ -44,13 +86,22 @@ const Footer = () => {
         <div>
             <h3 className='text-xl font-semibold'>Stay in the Loop</h3>
             <p className='mt-2 text-sm'>Subscribe to get special offers, free giveaways, and more</p>
-            <form action="" className='mt-4 flex'>
+            <form onSubmit={handleNewsletterSubmit} className='mt-4 flex'>
                 <input 
                 type="email" 
                 placeholder='Your email address'
-                className='w-full p-2 rounded-l-md  text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500'
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+                className='w-full p-2 rounded-l-md bg-gray-700 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50'
                 />
-                <button type='submit' className='bg-red-600 text-white px-4 rounded-r-md hover:bg-red-700'>Subscribe</button>
+                <button 
+                type='submit' 
+                disabled={loading}
+                className='bg-red-600 text-white px-4 rounded-r-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+                >
+                  {loading ? 'Subscribing...' : 'Subscribe'}
+                </button>
             </form>
         </div>
       </div>

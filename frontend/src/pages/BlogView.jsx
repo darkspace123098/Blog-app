@@ -26,12 +26,36 @@ const BlogView = () => {
     const blogId = params.blogId
     const { blog } = useSelector(store => store.blog)
     const { user } = useSelector(store => store.auth)
-    const selectedBlog = blog.find(blog => blog._id === blogId)
-    const [blogLike, setBlogLike] = useState(selectedBlog?.likes.length)
+    const [selectedBlog, setSelectedBlog] = useState(blog.find(p => p._id === blogId))
+    const [loading, setLoading] = useState(!selectedBlog)
+    const [blogLike, setBlogLike] = useState(selectedBlog?.likes?.length || 0)
     const { comment } = useSelector(store => store.comment)
-    const [liked, setLiked] = useState(selectedBlog?.likes.includes(user?._id) || false);
+    const [liked, setLiked] = useState(selectedBlog?.likes?.includes(user?._id) || false);
     const dispatch = useDispatch()
     console.log(selectedBlog);
+
+    // Fetch blog if not available in store
+    useEffect(() => {
+        const fetchBlog = async () => {
+            try {
+                setLoading(true)
+                const res = await axios.get(`http://localhost:8000/api/v1/blog/get-blog/${blogId}`, { withCredentials: true })
+                if (res.data.success) {
+                    setSelectedBlog(res.data.blog)
+                    setBlogLike(res.data.blog?.likes?.length || 0)
+                    setLiked(res.data.blog?.likes?.includes(user?._id) || false)
+                }
+            } catch (error) {
+                console.error('Failed to fetch blog:', error)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        if (!selectedBlog) {
+            fetchBlog()
+        }
+    }, [blogId])
 
     const likeOrDislikeHandler = async () => {
         try {
@@ -97,6 +121,37 @@ const BlogView = () => {
       useEffect(()=>{
         window.scrollTo(0,0)
       },[])
+    if (loading) {
+        return (
+            <div className='pt-14'>
+                <div className='max-w-6xl mx-auto p-10'>
+                    <p className='text-center text-gray-500'>Loading post...</p>
+                </div>
+            </div>
+        )
+    }
+    if (!selectedBlog) {
+        return (
+            <div className='pt-14'>
+                <div className='max-w-6xl mx-auto p-10'>
+                    <p className='text-center text-gray-500'>Post not found or may have been removed.</p>
+                    <div className='text-center mt-4'>
+                        <Link to={'/blogs'} className='underline'>Back to Blogs</Link>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    // Normalize blog to ensure arrays/objects exist
+    const safeBlog = {
+        ...selectedBlog,
+        likes: Array.isArray(selectedBlog.likes) ? selectedBlog.likes : [],
+        tags: Array.isArray(selectedBlog.tags) ? selectedBlog.tags : [],
+        author: selectedBlog.author || {},
+        comments: Array.isArray(selectedBlog.comments) ? selectedBlog.comments : []
+    }
+
     return (
         <div className='pt-14'>
             <div className='max-w-6xl mx-auto p-10'>
@@ -113,50 +168,51 @@ const BlogView = () => {
                         </BreadcrumbItem>
                         <BreadcrumbSeparator />
                         <BreadcrumbItem>
-                            <BreadcrumbPage>{selectedBlog.title}</BreadcrumbPage>
+                            <BreadcrumbPage>{safeBlog.title}</BreadcrumbPage>
                         </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
                 {/* Blog Header */}
                 <div className="my-8">
-                    <h1 className="text-4xl font-bold tracking-tight mb-4">{selectedBlog.title}</h1>
+                    <h1 className="text-4xl font-bold tracking-tight mb-4">{safeBlog.title}</h1>
                     <div className="flex items-center justify-between flex-wrap gap-4">
                         <div className="flex items-center space-x-4">
                             <Avatar>
-                                <AvatarImage src={selectedBlog.author.photoUrl} alt="Author" />
+                                <AvatarImage src={safeBlog.author?.photoUrl} alt="Author" />
                                 <AvatarFallback>JD</AvatarFallback>
                             </Avatar>
                             <div>
-                                <p className="font-medium">{selectedBlog.author.firstName} {selectedBlog.author.lastName}</p>
-                                <p className="text-sm text-muted-foreground">{selectedBlog.author.occupation}</p>
+                                <p className="font-medium">{safeBlog.author?.firstName} {safeBlog.author?.lastName}</p>
+                                <p className="text-sm text-muted-foreground">{safeBlog.author?.occupation}</p>
                             </div>
                         </div>
-                        <div className="text-sm text-muted-foreground">Published on {changeTimeFormat(selectedBlog.createdAt)} • 8 min read</div>
+                        <div className="text-sm text-muted-foreground">Published on {changeTimeFormat(safeBlog.createdAt)} • 8 min read</div>
                     </div>
                 </div>
 
                 {/* Featured Image */}
                 <div className="mb-8 rounded-lg overflow-hidden">
                     <img
-                        src={selectedBlog?.thumbnail}
+                        src={safeBlog?.thumbnail}
                         alt="Next.js Development"
                         width={1000}
                         height={500}
                         className="w-full object-cover"
                     />
-                    <p className="text-sm text-muted-foreground mt-2 italic">{selectedBlog.subtitle}</p>
+                    <p className="text-sm text-muted-foreground mt-2 italic">{safeBlog.subtitle}</p>
                 </div>
 
-                <p className='' dangerouslySetInnerHTML={{ __html: selectedBlog.description }} />
+                <p className='' dangerouslySetInnerHTML={{ __html: safeBlog.description }} />
 
                 <div className='mt-10'>
                     {/* Tags */}
-                    <div className="flex flex-wrap gap-2 mb-8">
-                        <Badge variant="secondary">Next.js</Badge>
-                        <Badge variant="secondary">React</Badge>
-                        <Badge variant="secondary">Web Development</Badge>
-                        <Badge variant="secondary">JavaScript</Badge>
-                    </div>
+                    {safeBlog.tags && safeBlog.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-8">
+                            {safeBlog.tags.map((tag, index) => (
+                                <Badge key={index} variant="secondary">{tag}</Badge>
+                            ))}
+                        </div>
+                    )}
 
                     {/* Engagement */}
                     <div className="flex items-center justify-between border-y dark:border-gray-800 border-gray-300 py-4 mb-8">
@@ -171,21 +227,21 @@ const BlogView = () => {
                             </Button>
                             <Button variant="ghost" size="sm" className="flex items-center gap-1">
                                 <MessageSquare className="h-4 w-4" />
-                                <span>{comment.length} Comments</span>
+                                <span>{(comment?.length || 0)} Comments</span>
                             </Button>
                         </div>
                         <div className="flex items-center space-x-2">
                             <Button variant="ghost" size="sm">
                                 <Bookmark className="h-4 w-4" />
                             </Button>
-                            <Button onClick={()=>handleShare(selectedBlog._id)} variant="ghost" size="sm">
+                            <Button onClick={()=>handleShare(safeBlog._id)} variant="ghost" size="sm">
                                 <Share2 className="h-4 w-4" />
                             </Button>
                         </div>
                     </div>
 
                 </div>
-                <CommentBox selectedBlog={selectedBlog} />
+                <CommentBox selectedBlog={safeBlog} />
 
                 {/* Author Bio */}
                 {/* <Card className="mb-12">

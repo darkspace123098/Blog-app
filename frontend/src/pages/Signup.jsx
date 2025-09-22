@@ -2,8 +2,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import React, { useState } from 'react'
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { toast } from 'sonner'
@@ -19,6 +20,8 @@ const Signup = () => {
         email: "",
         password: "",
     });
+    const [errors, setErrors] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -26,11 +29,71 @@ const Signup = () => {
             ...prev,
             [name]: value,
         }));
+        // Clear error when user starts typing
+        if (errors[name]) {
+            setErrors((prev) => ({
+                ...prev,
+                [name]: "",
+            }));
+        }
+    };
+
+    const validateForm = () => {
+        const newErrors = {};
+        
+        // First name validation
+        if (!user.firstName.trim()) {
+            newErrors.firstName = "First name is required";
+        } else if (user.firstName.trim().length < 2) {
+            newErrors.firstName = "First name must be at least 2 characters";
+        } else if (!/^[a-zA-Z\s]+$/.test(user.firstName.trim())) {
+            newErrors.firstName = "First name can only contain letters and spaces";
+        }
+        
+        // Last name validation
+        if (!user.lastName.trim()) {
+            newErrors.lastName = "Last name is required";
+        } else if (user.lastName.trim().length < 2) {
+            newErrors.lastName = "Last name must be at least 2 characters";
+        } else if (!/^[a-zA-Z\s]+$/.test(user.lastName.trim())) {
+            newErrors.lastName = "Last name can only contain letters and spaces";
+        }
+        
+        // Email validation
+        if (!user.email.trim()) {
+            newErrors.email = "Email is required";
+        } else {
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!emailRegex.test(user.email)) {
+                newErrors.email = "Please enter a valid email address";
+            }
+        }
+        
+        // Password validation
+        if (!user.password) {
+            newErrors.password = "Password is required";
+        } else if (user.password.length < 6) {
+            newErrors.password = "Password must be at least 6 characters long";
+        } else if (user.password.length > 50) {
+            newErrors.password = "Password must be less than 50 characters";
+        } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(user.password)) {
+            newErrors.password = "Password must contain at least one uppercase letter, one lowercase letter, and one number";
+        }
+        
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log(user)
+        
+        // Validate form
+        if (!validateForm()) {
+            return;
+        }
+
+        setIsLoading(true);
+        setErrors({});
 
         try {
             const response = await axios.post(`http://localhost:8000/api/v1/user/register`, user, {
@@ -39,41 +102,22 @@ const Signup = () => {
                 },
                 withCredentials: true,
             });
+            
             if (response.data.success) {
                 navigate('/login')
                 toast.success(response.data.message)
             } else {
-                toast.error(response.data.message)
+                const errorMessage = response.data.message || "Registration failed. Please try again.";
+                setErrors({ general: errorMessage });
+                toast.error(errorMessage);
             }
         } catch (error) {
-            console.log(error);
-            toast.error(error)
-
-
+            const errorMessage = error.response?.data?.message || "Registration failed. Please try again.";
+            setErrors({ general: errorMessage });
+            toast.error(errorMessage);
+        } finally {
+            setIsLoading(false);
         }
-
-        // try {
-        //     dispatch(setLoading(true))
-        //     const response = await axios.post("", user, {
-        //         headers: {
-        //             "Content-Type": "application/json",
-        //         },
-        //         withCredentials: true,
-        //     });
-        //     if (response.data.success) {
-        //         navigate('/login')
-        //         toast.success(response.data.message)
-        //         // setFormData({ name: "", email: "", password: "", role: "" });
-        //     } else {
-        //         toast(`Error: ${data.message || "Something went wrong"}`);
-        //     }
-        // } catch (error) {
-        //     // toast.error(error.response.data.message);
-        //     console.log(error);
-
-        // } finally {
-        //     dispatch(setLoading(false))
-        // }
     };
 
     const [showPassword, setShowPassword] = useState(false);
@@ -93,48 +137,69 @@ const Signup = () => {
                     </CardHeader>
                     <CardContent>
                         <form className="space-y-4" onSubmit={handleSubmit}>
+                            {errors.general && (
+                                <Alert variant="destructive">
+                                    <AlertCircle className="h-4 w-4" />
+                                    <AlertDescription>{errors.general}</AlertDescription>
+                                </Alert>
+                            )}
+                            
                             <div className='flex gap-3'>
-                                <div>
+                                <div className="flex-1">
                                     <Label>First Name</Label>
-                                    <Input type="text"
+                                    <Input 
+                                        type="text"
                                         placeholder="First Name"
                                         name="firstName"
                                         value={user.firstName}
                                         onChange={handleChange}
-                                        className="dark:border-gray-600 dark:bg-gray-900"
+                                        className={`dark:border-gray-600 dark:bg-gray-900 ${errors.firstName ? 'border-red-500' : ''}`}
                                     />
+                                    {errors.firstName && (
+                                        <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
+                                    )}
                                 </div>
 
-                                <div>
+                                <div className="flex-1">
                                     <Label>Last Name</Label>
-                                    <Input type="text"
+                                    <Input 
+                                        type="text"
                                         placeholder="Last Name"
                                         name="lastName"
                                         value={user.lastName}
                                         onChange={handleChange}
-                                        className="dark:border-gray-600 dark:bg-gray-900"
+                                        className={`dark:border-gray-600 dark:bg-gray-900 ${errors.lastName ? 'border-red-500' : ''}`}
                                     />
+                                    {errors.lastName && (
+                                        <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
+                                    )}
                                 </div>
                             </div>
+                            
                             <div>
                                 <Label>Email</Label>
-                                <Input type="email"
+                                <Input 
+                                    type="email"
                                     placeholder="john.doe@example.com"
                                     name="email"
                                     value={user.email}
                                     onChange={handleChange}
-                                    className="dark:border-gray-600 dark:bg-gray-900"
+                                    className={`dark:border-gray-600 dark:bg-gray-900 ${errors.email ? 'border-red-500' : ''}`}
                                 />
+                                {errors.email && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                                )}
                             </div>
 
                             <div className="relative">
                                 <Label>Password</Label>
-                                <Input type={showPassword ? "text" : "password"}
+                                <Input 
+                                    type={showPassword ? "text" : "password"}
                                     placeholder="Create a Password"
                                     name="password"
                                     value={user.password}
                                     onChange={handleChange}
-                                    className="dark:border-gray-600 dark:bg-gray-900"
+                                    className={`dark:border-gray-600 dark:bg-gray-900 ${errors.password ? 'border-red-500' : ''}`}
                                 />
                                 <button
                                     type="button"
@@ -143,9 +208,14 @@ const Signup = () => {
                                 >
                                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                 </button>
+                                {errors.password && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                                )}
                             </div>
 
-                            <Button type="submit" className="w-full">Sign Up</Button>
+                            <Button type="submit" className="w-full" disabled={isLoading}>
+                                {isLoading ? "Creating Account..." : "Sign Up"}
+                            </Button>
                             <p className='text-center text-gray-600 dark:text-gray-300'>Already have an account? <Link to={'/login'}><span className='underline cursor-pointer hover:text-gray-800 dark:hover:text-gray-100'>Sign in</span></Link></p>
                         </form>
                     </CardContent>

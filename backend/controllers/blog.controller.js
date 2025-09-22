@@ -6,16 +6,23 @@ import getDataUri from "../utils/dataUri.js";
 // Create a new blog post
 export const createBlog = async (req,res) => {
     try {
-        const {title, category} = req.body;
+        const {title, category, tags} = req.body;
         if(!title || !category) {
             return res.status(400).json({
                 message:"Blog title and category is required."
             })
         }
 
+        // Process tags - split by comma and trim whitespace
+        let processedTags = [];
+        if (tags) {
+            processedTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+        }
+
         const blog = await Blog.create({
             title,
             category,
+            tags: processedTags,
             author:req.id
         })
 
@@ -35,7 +42,7 @@ export const createBlog = async (req,res) => {
 export const updateBlog = async (req, res) => {
     try {
         const blogId = req.params.blogId
-        const { title, subtitle, description, category } = req.body;
+        const { title, subtitle, description, category, tags } = req.body;
         const file = req.file;
 
         let blog = await Blog.findById(blogId).populate("author");
@@ -50,7 +57,21 @@ export const updateBlog = async (req, res) => {
             thumbnail = await cloudinary.uploader.upload(fileUri)
         }
 
-        const updateData = {title, subtitle, description, category,author: req.id, thumbnail: thumbnail?.secure_url};
+        // Process tags - split by comma and trim whitespace
+        let processedTags = [];
+        if (tags) {
+            processedTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+        }
+
+        const updateData = {
+            title, 
+            subtitle, 
+            description, 
+            category, 
+            tags: processedTags,
+            author: req.id, 
+            thumbnail: thumbnail?.secure_url
+        };
         blog = await Blog.findByIdAndUpdate(blogId, updateData, {new:true});
 
         res.status(200).json({ success: true, message: "Blog updated successfully", blog });
@@ -75,6 +96,35 @@ export const getAllBlogs = async (_, res) => {
         res.status(200).json({ success: true, blogs });
     } catch (error) {
         res.status(500).json({ success: false, message: "Error fetching blogs", error: error.message });
+    }
+};
+
+// Get single blog by id (published or not, used for detail view)
+export const getBlogById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const blog = await Blog.findById(id)
+            .populate({
+                path: 'author',
+                select: 'firstName lastName photoUrl occupation'
+            })
+            .populate({
+                path: 'comments',
+                sort: { createdAt: -1 },
+                populate: {
+                    path: 'userId',
+                    select: 'firstName lastName photoUrl'
+                }
+            });
+
+        if (!blog) {
+            return res.status(404).json({ success: false, message: 'Blog not found' });
+        }
+
+        return res.status(200).json({ success: true, blog });
+    } catch (error) {
+        console.error('Error fetching blog by id:', error);
+        return res.status(500).json({ success: false, message: 'Failed to fetch blog' });
     }
 };
 
@@ -254,3 +304,61 @@ export const getMyTotalBlogLikes = async (req, res) => {
       });
     }
   };
+
+// Get blogs by tag
+export const getBlogsByTag = async (req, res) => {
+    try {
+        const { tag } = req.params;
+        if (!tag) {
+            return res.status(400).json({
+                success: false,
+                message: "Tag parameter is required"
+            });
+        }
+
+        const blogs = await Blog.find({ 
+            tags: { $in: [tag] },
+            isPublished: true 
+        }).sort({ createdAt: -1 }).populate({
+            path: 'author',
+            select: 'firstName lastName photoUrl'
+        }).populate({
+            path: 'comments',
+            sort: { createdAt: -1 },
+            populate: {
+                path: 'userId',
+                select: 'firstName lastName photoUrl'
+            }
+        });
+
+        res.status(200).json({
+            success: true,
+            blogs,
+            tag,
+            count: blogs.length
+        });
+    } catch (error) {
+        console.error("Error fetching blogs by tag:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch blogs by tag"
+        });
+    }
+};
+
+// Get all unique tags
+export const getAllTags = async (req, res) => {
+    try {
+        const tags = await Blog.distinct('tags', { isPublished: true });
+        res.status(200).json({
+            success: true,
+            tags: tags.filter(tag => tag && tag.trim().length > 0)
+        });
+    } catch (error) {
+        console.error("Error fetching tags:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch tags"
+        });
+    }
+};

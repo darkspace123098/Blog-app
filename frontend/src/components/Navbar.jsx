@@ -150,6 +150,13 @@ const Navbar = () => {
                                                 <span>Write Blog</span>
                                                 <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
                                             </DropdownMenuItem>
+                                            {(user.role === 'admin' || user.role === 'superadmin') && (
+                                                <DropdownMenuItem onClick={() => navigate('/admin/dashboard')}>
+                                                    <Settings />
+                                                    <span>Admin Panel</span>
+                                                    <DropdownMenuShortcut>⌘A</DropdownMenuShortcut>
+                                                </DropdownMenuItem>
+                                            )}
                                         </DropdownMenuGroup>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem onClick={logoutHandler}>

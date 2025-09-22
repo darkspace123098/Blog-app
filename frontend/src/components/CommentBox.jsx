@@ -55,7 +55,7 @@ const CommentBox = ({ selectedBlog }) => {
             try {
 
                 const res = await axios.get(`http://localhost:8000/api/v1/comment/${selectedBlog._id}/comment/all`)
-                const data = res.data.comments
+                const data = Array.isArray(res.data.comments) ? res.data.comments : []
                 dispatch(setComment(data))
             } catch (error) {
                 console.log(error);
@@ -63,7 +63,7 @@ const CommentBox = ({ selectedBlog }) => {
             }
         }
         getAllCommentsOfBlog()
-    }, [])
+    }, [selectedBlog?._id, dispatch])
 
     const commentHandler = async () => {
         try {
@@ -77,7 +77,7 @@ const CommentBox = ({ selectedBlog }) => {
                 let updatedCommentData
                 console.log(comment);
 
-                if (comment.length >= 1) {
+                if ((comment?.length || 0) >= 1) {
                     updatedCommentData = [...comment, res.data.comment]
                 } else {
                     updatedCommentData = [res.data.comment]
@@ -104,7 +104,7 @@ const CommentBox = ({ selectedBlog }) => {
                 withCredentials: true
             })
             if (res.data.success) {
-                const updatedCommentData = comment.filter((item) => item._id !== commentId)
+                const updatedCommentData = (comment || []).filter((item) => item._id !== commentId)
                 console.log(updatedCommentData);
 
                 dispatch(setComment(updatedCommentData))
@@ -131,7 +131,7 @@ const CommentBox = ({ selectedBlog }) => {
             );
 
             if (res.data.success) {
-                const updatedCommentData = comment.map(item =>
+                const updatedCommentData = (comment || []).map(item =>
                     item._id === commentId ? { ...item, content: editedContent } : item
                 );
                 dispatch(setComment(updatedCommentData));
@@ -157,7 +157,7 @@ const CommentBox = ({ selectedBlog }) => {
              if (res.data.success) {
                  const updatedComment = res.data.updatedComment;
 
-                 const updatedCommentList = comment.map(item =>
+                 const updatedCommentList = (comment || []).map(item =>
                      item._id === commentId ? updatedComment : item
                  );
 
@@ -190,9 +190,9 @@ const CommentBox = ({ selectedBlog }) => {
                 <Button onClick={commentHandler}><LuSend /></Button>
             </div>
             {
-                comment.length > 0 ? <div className='mt-7 bg-gray-100 dark:bg-gray-800 p-5 rounded-md'>
+                (comment?.length || 0) > 0 ? <div className='mt-7 bg-gray-100 dark:bg-gray-800 p-5 rounded-md'>
                     {
-                        comment.map((item, index) => {
+                        (comment || []).map((item, index) => {
                             return <div key={index} className='mb-4'>
                                 <div className='flex items-center justify-between'>
                                     <div className='flex gap-3 items-start'>
@@ -225,11 +225,11 @@ const CommentBox = ({ selectedBlog }) => {
                                                         onClick={() => likeCommentHandler(item._id)}
                                                     >
                                                         {
-                                                            item.likes.includes(user._id)
+                                                            (item?.likes || []).includes(user?._id)
                                                                 ? <FaHeart fill='red' />
                                                                 : <FaRegHeart />
                                                         }
-                                                        <span>{item.numberOfLikes}</span>
+                                                        <span>{item?.numberOfLikes || (item?.likes?.length || 0)}</span>
                                                     </div>
 
                                                 </div>

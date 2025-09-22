@@ -1,4 +1,4 @@
-import { ChartColumnBig, FolderPlus, SquareUser } from 'lucide-react'
+import { ChartColumnBig, FolderPlus, SquareUser, Mail } from 'lucide-react'
 import { LiaCommentSolid } from "react-icons/lia";
 import React from 'react'
 import { NavLink } from 'react-router-dom'
@@ -28,6 +28,10 @@ const Sidebar = () => {
         <NavLink to='/dashboard/write-blog' className={({ isActive }) => `text-2xl  ${isActive ? "bg-gray-800 dark:bg-gray-900 text-gray-200" : "bg-transparent"} flex items-center gap-2 font-bold cursor-pointer p-3 rounded-2xl w-ful`}>
           <FaRegEdit/>
           <span>Create Blog</span>
+        </NavLink>
+        <NavLink to='/dashboard/newsletter' className={({ isActive }) => `text-2xl  ${isActive ? "bg-gray-800 dark:bg-gray-900 text-gray-200" : "bg-transparent"} flex items-center gap-2 font-bold cursor-pointer p-3 rounded-2xl w-ful`}>
+          <Mail />
+          <span>Newsletter</span>
         </NavLink>
       </div>
 

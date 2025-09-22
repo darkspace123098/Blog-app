@@ -37,6 +37,7 @@ const UpdateBlog = () => {
         subtitle: selectBlog?.subtitle,
         description: content,
         category: selectBlog?.category,
+        tags: selectBlog?.tags?.join(', ') || '',
     });
     const [previewThumbnail, setPreviewThumbnail] = useState(selectBlog?.thumbnail);
 
@@ -69,6 +70,7 @@ const UpdateBlog = () => {
         formData.append("subtitle", blogData.subtitle);
         formData.append("description", content);
         formData.append("category", blogData.category);
+        formData.append("tags", blogData.tags);
         formData.append("file", blogData.thumbnail);
         try {
             setLoading(true)
@@ -182,6 +184,18 @@ const UpdateBlog = () => {
                                 </SelectGroup>
                             </SelectContent>
                         </Select>
+                    </div>
+                    <div>
+                        <Label>Tags</Label>
+                        <Input 
+                            type="text" 
+                            placeholder="Enter tags separated by commas (e.g., react, javascript, tutorial)" 
+                            name="tags"
+                            value={blogData.tags} 
+                            onChange={handleChange} 
+                            className="dark:border-gray-300" 
+                        />
+                        <p className="text-sm text-gray-500 mt-1">Separate multiple tags with commas</p>
                     </div>
                     <div>
                         <Label>Thumbnail</Label>

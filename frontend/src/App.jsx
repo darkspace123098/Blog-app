@@ -16,36 +16,44 @@ import Comments from './pages/Comments'
 import UpdateBlog from './pages/UpdateBlog'
 import ProtectedRoute from './components/ProtectedRoute'
 import SearchList from './pages/SearchList'
+import PageShell from './components/PageShell'
+import NewsletterSubscribers from './pages/NewsletterSubscribers'
+import AdminLayout from './components/AdminLayout'
+import AdminProtectedRoute from './components/AdminProtectedRoute'
+import AdminDashboard from './pages/AdminDashboard'
+import AdminUsers from './pages/AdminUsers'
+import AdminBlogs from './pages/AdminBlogs'
+import AdminSetup from './pages/AdminSetup'
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <><Navbar/><Home /><Footer/></>
+    element: <PageShell><Navbar/><Home /><Footer/></PageShell>
   },
   {
     path: "/blogs",
-    element: <><Navbar/><Blog /><Footer/></>
+    element: <PageShell><Navbar/><Blog /><Footer/></PageShell>
   },
   {
     path: "/about",
-    element: <><Navbar/><About /><Footer/></>
+    element: <PageShell><Navbar/><About /><Footer/></PageShell>
   },
   {
     path: "/search",
-    element: <><Navbar/><SearchList/><Footer/></>
+    element: <PageShell><Navbar/><SearchList/><Footer/></PageShell>
   },
   {
     path: "/blogs/:blogId",
-    element: <><Navbar/><ProtectedRoute><BlogView /></ProtectedRoute></>
+    element: <PageShell><Navbar/><ProtectedRoute><BlogView /></ProtectedRoute></PageShell>
   },
   {
     path: "/write-blog",
-    element: <><Navbar/><CreateBlog /></>
+    element: <PageShell><Navbar/><CreateBlog /></PageShell>
   },
  
   {
     path: "/profile",
-    element: <><Navbar/><Profile /></>
+    element: <PageShell><Navbar/><Profile /></PageShell>
   },
   // {
   //   path: "write-blog/:blogId",
@@ -79,17 +87,48 @@ const router = createBrowserRouter([
         path: "profile",
         element:<Profile/>
       },
+      {
+        path: "newsletter",
+        element:<NewsletterSubscribers/>
+      },
       
       
     ]
    },
   {
     path: "/signup",
-    element: <><Navbar/><Signup /></> 
+    element: <PageShell><Navbar/><Signup /></PageShell> 
   },
   {
     path: "/login",
-    element: <><Navbar/><Login /></>
+    element: <PageShell><Navbar/><Login /></PageShell>
+  },
+  {
+    path: "/admin-setup",
+    element: <AdminSetup />
+  },
+  // Admin routes
+  {
+    path: "/admin",
+    element: <AdminProtectedRoute><AdminLayout /></AdminProtectedRoute>,
+    children: [
+      {
+        path: "dashboard",
+        element: <AdminDashboard />
+      },
+      {
+        path: "users",
+        element: <AdminUsers />
+      },
+      {
+        path: "blogs",
+        element: <AdminBlogs />
+      },
+      {
+        path: "newsletter",
+        element: <NewsletterSubscribers />
+      }
+    ]
   },
 ])
 

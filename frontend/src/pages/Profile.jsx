@@ -37,7 +37,7 @@ const Profile = () => {
         linkedin: user?.linkedin,
         github: user?.github,
         instagram: user?.instagram,
-        file: user?.photoUrl
+        file: null
     })
 
     const changeEventHandler = (e) => {
@@ -63,16 +63,13 @@ const Profile = () => {
         formData.append("linkedin", input.linkedin);
         formData.append("instagram", input.instagram);
         formData.append("github", input.github);
-        if (input?.file) {
-            formData.append("file", input?.file)
+        if (input?.file instanceof File) {
+            formData.append("file", input.file)
         }
 
         try {
             setLoading(true)
-            const res = await axios.put(`http://localhost:8000/api/v1/user/profile/update`, formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data"
-                },
+            const res = await axios.put(`/api/v1/user/profile/update`, formData, {
                 withCredentials: true,
             })
             if (res.data.success) {
@@ -157,6 +154,20 @@ const Profile = () => {
                                     </div>
 
                                     <div className='flex gap-2'>
+                                        <div>
+                                            <Label htmlFor="occupation" className="text-right">
+                                                Profession
+                                            </Label>
+                                            <Input
+                                                id="occupation"
+                                                name="occupation"
+                                                value={input.occupation || ""}
+                                                onChange={changeEventHandler}
+                                                placeholder="Your profession"
+                                                type="text"
+                                                className="col-span-3 text-gray-500"
+                                            />
+                                        </div>
                                         <div>
                                             <Label>Facebook</Label>
                                             <Input id="facebook"
