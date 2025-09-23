@@ -24,6 +24,7 @@ import AdminDashboard from './pages/AdminDashboard'
 import AdminUsers from './pages/AdminUsers'
 import AdminBlogs from './pages/AdminBlogs'
 import AdminSetup from './pages/AdminSetup'
+import AdminSettings from './pages/AdminSettings'
 
 const router = createBrowserRouter([
   {
@@ -45,10 +46,6 @@ const router = createBrowserRouter([
   {
     path: "/blogs/:blogId",
     element: <PageShell><Navbar/><ProtectedRoute><BlogView /></ProtectedRoute></PageShell>
-  },
-  {
-    path: "/write-blog",
-    element: <PageShell><Navbar/><CreateBlog /></PageShell>
   },
  
   {
@@ -127,6 +124,10 @@ const router = createBrowserRouter([
       {
         path: "newsletter",
         element: <NewsletterSubscribers />
+      },
+      {
+        path: "settings",
+        element: <AdminSettings />
       }
     ]
   },

@@ -35,6 +35,7 @@ const tags = [
 const RecentBlog = () => {
     const { blog } = useSelector(store => store.blog)
     const [category, setCategory] = useState("")
+    const [suggestedBlogs, setSuggestedBlogs] = useState([])
     const navigate = useNavigate()
     const dispatch = useDispatch()
     console.log(blog);
@@ -48,64 +49,125 @@ const RecentBlog = () => {
                 }
             } catch (error) {
                 console.log(error);
-
             }
         }
+
+        const getSuggestedBlogs = async () => {
+            try {
+                const res = await axios.get(`${process.env.SERVER_PORT}/api/v1/blog/suggested?limit=3`, { withCredentials: true })
+                if (res.data.success) {
+                    setSuggestedBlogs(res.data.blogs)
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
         getAllPublsihedBlogs()
+        getSuggestedBlogs()
     }, [])
 
     return (
-        <div className='bg-gray-100 dark:bg-gray-800 pb-10'>
-            <div className='max-w-6xl mx-auto  flex flex-col space-y-4 items-center'>
-                <h1 className='text-4xl font-bold pt-10 '>Recent Blogs</h1>
-                <hr className=' w-24 text-center border-2 border-red-500 rounded-full' />
-            </div>
-            <div className='max-w-7xl mx-auto flex gap-6'>
-                <div>
-                    <div className='mt-10 px-4 md:px-0'>
-                        {
-                            blog?.slice(0, 4)?.map((blog, index) => {
-                                return <BlogCardList key={index} blog={blog} />
-                            })
-                        }
-                    </div>
-
+        <div className='bg-gray-100 dark:bg-gray-800 py-12 md:py-16'>
+            <div className='max-w-7xl mx-auto px-4 md:px-6 lg:px-8'>
+                {/* Header Section */}
+                <div className='flex flex-col space-y-4 items-center mb-12'>
+                    <h1 className='text-3xl md:text-4xl lg:text-5xl font-bold text-center'>Recent Blogs</h1>
+                    <hr className='w-24 border-2 border-red-500 rounded-full' />
                 </div>
-                <div className='bg-white hidden md:block dark:bg-gray-700 w-[350px] p-5 rounded-md mt-10'>
-                    <h1 className='text-2xl font-semibold'>Popular categories</h1>
-                    <div className='my-5 flex flex-wrap gap-3'>
-                        {
-                            tags.map((item, index) => {
-                                return <Badge onClick={() => navigate(`/search?q=${item.category}`)} key={index} className="cursor-pointer">{item.category}</Badge>
-                            })
-                        }
-                    </div>
-                    <h1 className='text-xl font-semibold '>Subscribe to Newsletter</h1>
-                    <p className='text-sm text-gray-600 dark:text-gray-400'>Get the latest posts and updates delivered straight to your inbox.</p>
-                    <div className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto mt-5">
-                        <Input
-                            type="email"
-                            placeholder="Enter your email"
-                            className="flex h-10 w-full rounded-md border bg-gray-200 dark:bg-gray-800 px-3 py-2 text-sm  text-gray-300"
-                        />
-                        <Button>Subscribe</Button>
-                    </div>
-                    <div className='mt-7'>
-                        <h2 className="text-xl font-semibold mb-3">Suggested Blogs</h2>
-                        <ul className="space-y-3">
-                            {[
-                                '10 Tips to Master React',
-                                'Understanding Tailwind CSS',
-                                'Improve SEO in 2024',
-                            ].map((title, idx) => (
-                                <li
-                                    key={idx}
-                                    className="text-sm dark:text-gray-100  hover:underline cursor-pointer"
-                                >
-                                    {title}
-                                </li>
+                
+                {/* Main Content Layout */}
+                <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
+                    {/* Blog Posts Section */}
+                    <div className='lg:col-span-2'>
+                        <div className='space-y-6'>
+                            {blog?.slice(0, 4)?.map((blog, index) => (
+                                <BlogCardList key={index} blog={blog} />
                             ))}
-                        </ul>
+                        </div>
+                    </div>
+                    
+                    {/* Sidebar Section */}
+                    <div className='lg:col-span-1'>
+                        <div className='bg-white dark:bg-gray-700 p-6 rounded-lg shadow-lg sticky top-8'>
+                            {/* Popular Categories */}
+                            <div className='mb-8'>
+                                <h2 className='text-xl md:text-2xl font-semibold mb-4'>Popular Categories</h2>
+                                <div className='flex flex-wrap gap-2'>
+                                    {tags.map((item, index) => (
+                                        <Badge 
+                                            onClick={() => navigate(`/search?q=${item.category}`)} 
+                                            key={index} 
+                                            className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                                        >
+                                            {item.category}
+                                        </Badge>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            {/* Newsletter Subscription */}
+                            <div className='mb-8'>
+                                <h2 className='text-lg md:text-xl font-semibold mb-3'>Subscribe to Newsletter</h2>
+                                <p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>
+                                    Get the latest posts and updates delivered straight to your inbox.
+                                </p>
+                                <div className="flex flex-col gap-2">
+                                    <Input
+                                        type="email"
+                                        placeholder="Enter your email"
+                                        className="w-full rounded-md border bg-gray-50 dark:bg-gray-800 px-3 py-2 text-sm"
+                                    />
+                                    <Button className="w-full">Subscribe</Button>
+                                </div>
+                            </div>
+                            
+                            {/* Suggested Blogs */}
+                            <div>
+                                <h2 className="text-lg md:text-xl font-semibold mb-3">Suggested Blogs</h2>
+                                {suggestedBlogs.length > 0 ? (
+                                    <ul className="space-y-3">
+                                        {suggestedBlogs.map((blog, idx) => {
+                                            const date = new Date(blog.createdAt)
+                                            const formattedDate = date.toLocaleDateString("en-GB")
+                                            return (
+                                                <li
+                                                    key={blog._id}
+                                                    onClick={() => navigate(`/blogs/${blog._id}`)}
+                                                    className="group cursor-pointer p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                                                >
+                                                    <div className="flex items-start space-x-3">
+                                                        <div className="flex-shrink-0">
+                                                            <img 
+                                                                src={blog.thumbnail} 
+                                                                alt={blog.title}
+                                                                className="w-12 h-12 rounded-lg object-cover"
+                                                            />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h3 className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors line-clamp-2">
+                                                                {blog.title}
+                                                            </h3>
+                                                            <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                                <span>By {blog.author?.firstName || 'Unknown'}</span>
+                                                                <span className="mx-1">•</span>
+                                                                <span>{formattedDate}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            )
+                                        })}
+                                    </ul>
+                                ) : (
+                                    <div className="text-center py-8">
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                                            No suggested blogs available at the moment.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

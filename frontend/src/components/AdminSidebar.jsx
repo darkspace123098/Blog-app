@@ -4,7 +4,8 @@ import {
     FileText, 
     Mail, 
     Settings,
-    Shield
+    Shield,
+    Home
 } from 'lucide-react'
 import React from 'react'
 import { NavLink } from 'react-router-dom'
@@ -17,6 +18,11 @@ const AdminSidebar = () => {
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Admin Panel</h1>
           <p className="text-sm text-gray-600 dark:text-gray-400">Manage your blog platform</p>
         </div>
+        
+        <NavLink to='/' className={({ isActive }) => `text-2xl  ${isActive ? "bg-gray-800 dark:bg-gray-900 text-gray-200" : "bg-transparent"} flex items-center gap-2 font-bold cursor-pointer p-3 rounded-2xl w-full`}>
+          <Home />
+          <span>Home</span>
+        </NavLink>
         
         <NavLink to='/admin/dashboard' className={({ isActive }) => `text-2xl  ${isActive ? "bg-gray-800 dark:bg-gray-900 text-gray-200" : "bg-transparent"} flex items-center gap-2 font-bold cursor-pointer p-3 rounded-2xl w-full`}>
           <LayoutDashboard />

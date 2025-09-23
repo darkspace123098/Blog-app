@@ -9,6 +9,7 @@ const TotalProperty = () => {
     const { blog } = useSelector(store => store.blog)
     const [totalComments, setTotalComments] = useState(0)
     const [totalLikes, setTotalLikes] = useState(0)
+    const [totalViews, setTotalViews] = useState(0)
     const dispatch = useDispatch()
 
     const getOwnBlog = async () => {
@@ -45,16 +46,29 @@ const TotalProperty = () => {
         
       }
     }
+
+    const getTotalViews = async()=>{
+      try {
+        const res = await axios.get(`http://localhost:8000/api/v1/blog/my-blogs/views`,{withCredentials:true})
+        if(res.data.success){
+           setTotalViews(res.data.totalViews)
+        }
+      } catch (error) {
+       console.log(error);
+        
+      }
+    }
     useEffect(()=>{
         getOwnBlog()
         getTotalComments()
         getTotalLikes()
+        getTotalViews()
     },[])
 
     const stats = [
         {
           title: "Total Views",
-          value: "24.8K",
+          value: totalViews,
           icon: Eye,
           change: "+12%",
           trend: "up",

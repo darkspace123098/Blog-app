@@ -170,14 +170,14 @@ export const updateProfile = async(req, res) => {
         }
 
         // updating data
-        if(firstName) user.firstName = firstName
-        if(lastName) user.lastName = lastName
-        if(occupation) user.occupation = occupation
-        if(instagram) user.instagram = instagram
-        if(facebook) user.facebook = facebook
-        if(linkedin) user.linkedin = linkedin
-        if(github) user.github = github
-        if(bio) user.bio = bio
+        if(firstName !== undefined) user.firstName = firstName
+        if(lastName !== undefined) user.lastName = lastName
+        if(occupation !== undefined) user.occupation = occupation
+        if(instagram !== undefined) user.instagram = instagram
+        if(facebook !== undefined) user.facebook = facebook
+        if(linkedin !== undefined) user.linkedin = linkedin
+        if(github !== undefined) user.github = github
+        if(bio !== undefined) user.bio = bio
         if(cloudResponse?.secure_url) user.photoUrl = cloudResponse.secure_url
         
         // Guarded role update: only admins/superadmins can change role

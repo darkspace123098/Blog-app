@@ -1,6 +1,6 @@
 import { Avatar, AvatarImage } from '@/components/ui/avatar'
 import { Card } from '@/components/ui/card'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import userLogo from "../assets/user.jpg"
 import { FaFacebook, FaLinkedin, FaGithub, FaInstagram } from "react-icons/fa";
@@ -29,16 +29,31 @@ const Profile = () => {
     const [loading, setLoading] = useState(false)
     const { user } = useSelector(store => store.auth)
     const [input, setInput] = useState({
-        firstName: user?.firstName,
-        lastName: user?.lastName,
-        occupation: user?.occupation,
-        bio: user?.bio,
-        facebook: user?.facebook,
-        linkedin: user?.linkedin,
-        github: user?.github,
-        instagram: user?.instagram,
+        firstName: user?.firstName || "",
+        lastName: user?.lastName || "",
+        occupation: user?.occupation || "",
+        bio: user?.bio || "",
+        facebook: user?.facebook || "",
+        linkedin: user?.linkedin || "",
+        github: user?.github || "",
+        instagram: user?.instagram || "",
         file: null
     })
+
+    // Update form state when user data changes
+    useEffect(() => {
+        setInput({
+            firstName: user?.firstName || "",
+            lastName: user?.lastName || "",
+            occupation: user?.occupation || "",
+            bio: user?.bio || "",
+            facebook: user?.facebook || "",
+            linkedin: user?.linkedin || "",
+            github: user?.github || "",
+            instagram: user?.instagram || "",
+            file: null
+        })
+    }, [user])
 
     const changeEventHandler = (e) => {
         const { name, value } = e.target;
@@ -97,10 +112,26 @@ const Profile = () => {
                         </Avatar>
                         <h1 className='text-center font-semibold text-xl text-gray-700 dark:text-gray-300 my-3'>{user?.occupation || "Mern Stack Developer"}</h1>
                         <div className='flex gap-4 items-center'>
-                            <Link ><FaFacebook className='w-6 h-6 text-gray-800 dark:text-gray-300' /></Link>
-                            <Link to={`${user?.linkedin}`} target="_blank"><FaLinkedin className='w-6 h-6 dark:text-gray-300 text-gray-800' /></Link>
-                            <Link to={`${user?.github}`} target="_blank"><FaGithub className='w-6 h-6 dark:text-gray-300 text-gray-800' /></Link>
-                            <Link><FaInstagram className='w-6 h-6 text-gray-800 dark:text-gray-300' /></Link>
+                            {user?.facebook && (
+                                <Link to={user.facebook} target="_blank">
+                                    <FaFacebook className='w-6 h-6 text-gray-800 dark:text-gray-300 hover:text-blue-600' />
+                                </Link>
+                            )}
+                            {user?.linkedin && (
+                                <Link to={user.linkedin} target="_blank">
+                                    <FaLinkedin className='w-6 h-6 dark:text-gray-300 text-gray-800 hover:text-blue-600' />
+                                </Link>
+                            )}
+                            {user?.github && (
+                                <Link to={user.github} target="_blank">
+                                    <FaGithub className='w-6 h-6 dark:text-gray-300 text-gray-800 hover:text-gray-600' />
+                                </Link>
+                            )}
+                            {user?.instagram && (
+                                <Link to={user.instagram} target="_blank">
+                                    <FaInstagram className='w-6 h-6 text-gray-800 dark:text-gray-300 hover:text-pink-600' />
+                                </Link>
+                            )}
                         </div>
                     </div>
                     {/* info section */}

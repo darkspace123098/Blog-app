@@ -7,34 +7,64 @@ import getDataUri from "../utils/dataUri.js";
 export const createBlog = async (req,res) => {
     try {
         const {title, category, tags} = req.body;
-        if(!title || !category) {
+        
+        // Enhanced validation
+        const errors = {};
+        
+        if (!title || !title.trim()) {
+            errors.title = "Title is required";
+        } else if (title.trim().length < 3) {
+            errors.title = "Title must be at least 3 characters long";
+        } else if (title.trim().length > 200) {
+            errors.title = "Title must be less than 200 characters";
+        }
+        
+        if (!category || !category.trim()) {
+            errors.category = "Category is required";
+        }
+        
+        // Validate tags if provided
+        if (tags && tags.trim()) {
+            const tagArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+            if (tagArray.some(tag => tag.length > 50)) {
+                errors.tags = "Each tag must be less than 50 characters";
+            }
+            if (tagArray.length > 10) {
+                errors.tags = "Maximum 10 tags allowed";
+            }
+        }
+        
+        if (Object.keys(errors).length > 0) {
             return res.status(400).json({
-                message:"Blog title and category is required."
+                success: false,
+                message: "Validation failed",
+                errors
             })
         }
 
         // Process tags - split by comma and trim whitespace
         let processedTags = [];
-        if (tags) {
+        if (tags && tags.trim()) {
             processedTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
         }
 
         const blog = await Blog.create({
-            title,
-            category,
+            title: title.trim(),
+            category: category.trim(),
             tags: processedTags,
-            author:req.id
+            author: req.id
         })
 
         return res.status(201).json({
-            success:true,
+            success: true,
             blog,
-            message:"Blog Created Successfully."
+            message: "Blog Created Successfully."
         })
     } catch (error) {
         console.log(error);
         return res.status(500).json({
-            message:"Failed to create blog"
+            success: false,
+            message: "Failed to create blog"
         })
     }
 }
@@ -120,6 +150,9 @@ export const getBlogById = async (req, res) => {
         if (!blog) {
             return res.status(404).json({ success: false, message: 'Blog not found' });
         }
+
+        // Increment views when blog is accessed
+        await Blog.findByIdAndUpdate(id, { $inc: { views: 1 } });
 
         return res.status(200).json({ success: true, blog });
     } catch (error) {
@@ -305,6 +338,30 @@ export const getMyTotalBlogLikes = async (req, res) => {
     }
   };
 
+export const getMyTotalBlogViews = async (req, res) => {
+    try {
+      const userId = req.id; // assuming you use authentication middleware
+  
+      // Step 1: Find all blogs authored by the logged-in user
+      const myBlogs = await Blog.find({ author: userId }).select("views");
+  
+      // Step 2: Sum up the total views
+      const totalViews = myBlogs.reduce((acc, blog) => acc + (blog.views || 0), 0);
+  
+      res.status(200).json({
+        success: true,
+        totalBlogs: myBlogs.length,
+        totalViews,
+      });
+    } catch (error) {
+      console.error("Error getting total blog views:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch total blog views",
+      });
+    }
+  };
+
 // Get blogs by tag
 export const getBlogsByTag = async (req, res) => {
     try {
@@ -359,6 +416,37 @@ export const getAllTags = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Failed to fetch tags"
+        });
+    }
+};
+
+// Get suggested blogs based on views, likes, and recent activity
+export const getSuggestedBlogs = async (req, res) => {
+    try {
+        const { limit = 3 } = req.query;
+        
+        // Get blogs sorted by a combination of views, likes, and recent activity
+        const suggestedBlogs = await Blog.find({ isPublished: true })
+            .populate({
+                path: 'author',
+                select: 'firstName lastName photoUrl'
+            })
+            .sort({ 
+                views: -1,  // Sort by views (most viewed first)
+                createdAt: -1  // Then by creation date (most recent first)
+            })
+            .limit(parseInt(limit));
+
+        res.status(200).json({
+            success: true,
+            blogs: suggestedBlogs,
+            count: suggestedBlogs.length
+        });
+    } catch (error) {
+        console.error("Error fetching suggested blogs:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch suggested blogs"
         });
     }
 };
